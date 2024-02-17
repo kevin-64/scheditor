@@ -1,0 +1,13 @@
+html, body {
+  height: 100%;
+  margin-left: 0;
+}
+
+#root {
+  height: 100%;
+}
+
+#kts-scheditor-main-container {
+  display: flex;
+  flex-direction: row;
+}
