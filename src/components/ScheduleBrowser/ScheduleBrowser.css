@@ -1,0 +1,8 @@
+.kts-scheditor-schedule-row {
+}
+
+.kts-scheditor-schedule-tree {
+  min-height: 100%;
+  height: 100%;
+  border: 1px solid black;
+}

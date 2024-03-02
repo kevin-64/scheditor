@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import TreeView from "react-accessible-treeview";
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
+import './ScheduleBrowser.css';
 
 export default function ScheduleBrowser() {
   const { lines } = useContext(ScheduleContext)!;
@@ -20,20 +21,25 @@ export default function ScheduleBrowser() {
         children: [...lines.map(ln => `L-${ln.lineid}`)],
         parent: null,
       },
-      ...lines.map(ln => {
-        return {
+      ...lines.flatMap(ln => {
+        return [{
           ...ln,
-          id:`L-${ln.lineid}`,
+          id: `L-${ln.lineid}`,
           parent: 0,
-          children: [...ln.schedules.map(sch => `S-${sch.scheduleid}`)],
+          children: [...[...ln.schedules.map(sch => `S-${sch.scheduleid}`), `L-${ln.lineid}-ADD`]],
           isBranch: true
-        }
+        },{
+          id: `L-${ln.lineid}-ADD`,
+          name: `+ New Schedule`,
+          parent: `L-${ln.lineid}`,
+          children: []
+        }]
       }),
       ...lines.flatMap(ln => ln.schedules).map(sch => {
         return {
           id: `S-${sch.scheduleid}`,
           name: `Schedule ${sch.scheduleid}`, //TODO: have actual name
-          parent: sch.lineid,
+          parent: `L-${sch.lineid}`,
           children: [],
         }
       })
@@ -47,10 +53,10 @@ export default function ScheduleBrowser() {
   return (
     <TreeView
       data={data}
-      className="basic"
+      className="kts-scheditor-schedule-tree"
       aria-label="basic example tree"
       nodeRenderer={({ element, getNodeProps, level, handleSelect }) => (
-        <div {...getNodeProps()} style={{ paddingLeft: 20 * (level - 1) }}>
+        <div {...getNodeProps()} className="kts-scheditor-schedule-row" style={{ paddingLeft: 20 * (level - 1) }}>
           {element.name}
         </div>
       )}
