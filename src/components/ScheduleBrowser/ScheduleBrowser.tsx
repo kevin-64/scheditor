@@ -1,47 +1,33 @@
 import React, { useContext, useEffect, useState } from 'react';
-import TreeView from "react-accessible-treeview";
+import { Tree, NodeRendererProps } from 'react-arborist';
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 import './ScheduleBrowser.css';
 
 export default function ScheduleBrowser() {
   const { lines } = useContext(ScheduleContext)!;
 
-  const [data, setData] = useState<any>([{
-    name: "",
-    id: 0,
-    children: [],
-    parent: null,
-  }]);
+  const [data, setData] = useState<any>([]);
 
   useEffect(() => {
     setData([
-      {
-        name: "",
-        id: 0,
-        children: [...lines.map(ln => `L-${ln.lineid}`)],
-        parent: null,
-      },
       ...lines.flatMap(ln => {
         return [{
           ...ln,
           id: `L-${ln.lineid}`,
-          parent: 0,
-          children: [...[...ln.schedules.map(sch => `S-${sch.scheduleid}`), `L-${ln.lineid}-ADD`]],
-          isBranch: true
-        },{
-          id: `L-${ln.lineid}-ADD`,
-          name: `+ New Schedule`,
-          parent: `L-${ln.lineid}`,
-          children: []
+          name: `Line ${ln.lineid}`,
+          children: [
+            ...[...ln.schedules.map(sch => {
+              return {
+                id: `S-${sch.scheduleid}`,
+                scheduleid: `${sch.scheduleid}`,
+                name: `Schedule ${sch.scheduleid}`
+              }
+            }), {
+              id: `L-${ln.lineid}-ADD`,
+              name: `+ New Schedule`
+            }]
+          ],
         }]
-      }),
-      ...lines.flatMap(ln => ln.schedules).map(sch => {
-        return {
-          id: `S-${sch.scheduleid}`,
-          name: `Schedule ${sch.scheduleid}`, //TODO: have actual name
-          parent: `L-${sch.lineid}`,
-          children: [],
-        }
       })
     ])
   }, [lines.length]);
@@ -51,15 +37,31 @@ export default function ScheduleBrowser() {
   }, [data]);
 
   return (
-    <TreeView
+    <Tree
       data={data}
+      openByDefault={false}
+      width={200}
+      height={1000}
+      indent={24}
+      rowHeight={20}
+      padding={0}
       className="kts-scheditor-schedule-tree"
-      aria-label="basic example tree"
-      nodeRenderer={({ element, getNodeProps, level, handleSelect }) => (
-        <div {...getNodeProps()} className="kts-scheditor-schedule-row" style={{ paddingLeft: 20 * (level - 1) }}>
-          {element.name}
-        </div>
-      )}
-    />
+      >
+        {Node}
+    </Tree>
   )
+}
+
+const Node = ({node, style, dragHandle}: NodeRendererProps<any>) => {
+  const { setCurrentSchedule } = useContext(ScheduleContext)!;
+  return (
+    <div ref={dragHandle} className="kts-scheditor-schedule-row" style={style} onClick={() => {
+      if (node.data.scheduleid) {
+        setCurrentSchedule(Number(node.data.scheduleid));
+      }
+      node.toggle();
+    }}>
+      {node.data.name}
+    </div>
+  );
 }

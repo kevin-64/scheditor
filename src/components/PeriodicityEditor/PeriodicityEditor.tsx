@@ -1,10 +1,12 @@
 import './PeriodicityEditor.css';
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Periodicity, getIndexOfWeekday, getWeekdayFromIndex, RepetitionPeriod, Schedule } from 'ktscore';
 import axios from 'axios';
+import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 
-export default function PeriodicityEditor({scheduleId}: {scheduleId: number}) {
+export default function PeriodicityEditor() {
+  const { currentSchedule: scheduleId } = useContext(ScheduleContext)!;
   const [weekdays, setWeekdays] = useState<boolean[]>([]);
   const [repetitions, setRepetitions] = useState<[number, RepetitionPeriod][]>([])
   const [yearly, setYearly] = useState(false);
@@ -12,6 +14,7 @@ export default function PeriodicityEditor({scheduleId}: {scheduleId: number}) {
   const [periodToAdd, setPeriodToAdd] = useState('');
 
   useEffect(() => {
+    if (!scheduleId) return;
     axios.get(`http://localhost:8080/schedules/${scheduleId}`).then(res => {
       const sch = res.data as Schedule;
 
@@ -35,7 +38,7 @@ export default function PeriodicityEditor({scheduleId}: {scheduleId: number}) {
 
       setYearly(everyYear || false);
     });
-  }, []);
+  }, [scheduleId]);
 
   const setDay = (day: number, selected: boolean) => {
     const newWeekdays = [...weekdays];
@@ -93,6 +96,7 @@ export default function PeriodicityEditor({scheduleId}: {scheduleId: number}) {
   // }
 
   return (
+    scheduleId ? (
     <div className={`kts-scheditor-period-editor`}>
       {/* <button onClick={() => close()}>Close</button><br /> */}
       {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day, index) => {
@@ -141,6 +145,6 @@ export default function PeriodicityEditor({scheduleId}: {scheduleId: number}) {
       </div>
 
       <button onClick={() => updateSchedule()}>Update</button>
-    </div>
+    </div>) : <></>
   )
 }
