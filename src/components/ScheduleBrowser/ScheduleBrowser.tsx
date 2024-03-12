@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Tree, NodeRendererProps } from 'react-arborist';
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
+import { Schedule, getScheduleShortString } from 'ktscore';
 import './ScheduleBrowser.css';
 
 export default function ScheduleBrowser() {
   const { lines } = useContext(ScheduleContext)!;
+  const treeRef = useRef(null);
 
   const [data, setData] = useState<any>([]);
 
@@ -20,7 +22,8 @@ export default function ScheduleBrowser() {
               return {
                 id: `S-${sch.scheduleid}`,
                 scheduleid: `${sch.scheduleid}`,
-                name: `Schedule ${sch.scheduleid}`
+                name: sch.name,
+                schedule: { ...sch}
               }
             }), {
               id: `L-${ln.lineid}-ADD`,
@@ -38,9 +41,10 @@ export default function ScheduleBrowser() {
 
   return (
     <Tree
+      ref={treeRef}
       data={data}
       openByDefault={false}
-      width={200}
+      width={400}
       height={1000}
       indent={24}
       rowHeight={20}
@@ -53,6 +57,11 @@ export default function ScheduleBrowser() {
 }
 
 const Node = ({node, style, dragHandle}: NodeRendererProps<any>) => {
+  let scheduleName = node.data.name;
+  if (node.data.schedule) {
+    scheduleName = `${getScheduleShortString(node.data.schedule as Schedule)} ${node.data.name || `Schedule ${node.data.scheduleid}`}`
+  }
+
   const { setCurrentSchedule } = useContext(ScheduleContext)!;
   return (
     <div ref={dragHandle} className="kts-scheditor-schedule-row" style={style} onClick={() => {
@@ -61,7 +70,7 @@ const Node = ({node, style, dragHandle}: NodeRendererProps<any>) => {
       }
       node.toggle();
     }}>
-      {node.data.name}
+      {scheduleName}
     </div>
   );
 }

@@ -6,7 +6,8 @@ import axios from 'axios';
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 
 export default function PeriodicityEditor() {
-  const { currentSchedule: scheduleId } = useContext(ScheduleContext)!;
+  const { currentSchedule: scheduleId, editingPeriodicity, setEditingPeriodicity } = useContext(ScheduleContext)!;
+  const [scheduleData, setScheduleData] = useState<Schedule | undefined>();
   const [weekdays, setWeekdays] = useState<boolean[]>([]);
   const [repetitions, setRepetitions] = useState<[number, RepetitionPeriod][]>([])
   const [yearly, setYearly] = useState(false);
@@ -14,9 +15,11 @@ export default function PeriodicityEditor() {
   const [periodToAdd, setPeriodToAdd] = useState('');
 
   useEffect(() => {
-    if (!scheduleId) return;
+    if (!scheduleId || !editingPeriodicity) return;
     axios.get(`http://localhost:8080/schedules/${scheduleId}`).then(res => {
       const sch = res.data as Schedule;
+
+      setScheduleData(sch);
 
       console.log(sch.periodicity);
       const { daysOfTheWeek, repeat, everyYear } = sch.periodicity;
@@ -38,7 +41,7 @@ export default function PeriodicityEditor() {
 
       setYearly(everyYear || false);
     });
-  }, [scheduleId]);
+  }, [scheduleId, editingPeriodicity]);
 
   const setDay = (day: number, selected: boolean) => {
     const newWeekdays = [...weekdays];
@@ -71,6 +74,7 @@ export default function PeriodicityEditor() {
     });
 
     const body = {
+      ...scheduleData,
       scheduleid: scheduleId,
       periodicity: {
         everyYear: yearly,
@@ -87,18 +91,17 @@ export default function PeriodicityEditor() {
 
     console.log(body);
 
-    axios.put(`http://localhost:8080/schedules/${scheduleId}`, body);
+    axios.put(`http://localhost:8080/schedules/${scheduleId}`, body).then(() => close());
   }
 
-  // const close = () => {
-  //   setViewMode(ViewMode.NORMAL);
-  //   setPopup(undefined);
-  // }
+  const close = () => {
+    setEditingPeriodicity(false);
+  }
 
   return (
-    scheduleId ? (
+    (scheduleId && editingPeriodicity) ? (
     <div className={`kts-scheditor-period-editor`}>
-      {/* <button onClick={() => close()}>Close</button><br /> */}
+      <button onClick={() => close()}>Close</button><br />
       {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day, index) => {
         return (
           <div key={`container-${day}`}>
