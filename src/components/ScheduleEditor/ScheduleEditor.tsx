@@ -1,12 +1,12 @@
 import './ScheduleEditor.css';
 
 import React, { useContext, useEffect, useState } from "react";
-import { Schedule } from 'ktscore';
+import { Schedule, getScheduleLongString } from 'ktscore';
 import axios from 'axios';
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 
 export default function ScheduleEditor() {
-  const { currentSchedule: scheduleId, setEditingPeriodicity } = useContext(ScheduleContext)!;
+  const { currentSchedule: scheduleId, updateSchedule: updateSchData, setEditingPeriodicity } = useContext(ScheduleContext)!;
   const [name, setName] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -18,6 +18,7 @@ export default function ScheduleEditor() {
     axios.get(`http://localhost:8080/schedules/${scheduleId}`).then(res => {
       const sch = res.data as Schedule;
       setScheduleData({...sch});
+      console.log({...sch})
 
       console.log(sch);
       setFrom(sch.startvalidity.substring(0, 10));
@@ -33,11 +34,14 @@ export default function ScheduleEditor() {
   const updateSchedule = () => {
     const body = {
       ...scheduleData,
+      scheduleid: scheduleId,
       startvalidity: from,
       endvalidity: to === '' ? null : to,
       name,
     }
-    axios.put(`http://localhost:8080/schedules/${scheduleId}`, body);
+    axios.put(`http://localhost:8080/schedules/${scheduleId}`, body).then(() => {
+      updateSchData(body as Schedule);
+    });
   }
 
   // const close = () => {
@@ -54,8 +58,10 @@ export default function ScheduleEditor() {
                 id="schedule-name"
                 value={name} 
                 onChange={(e) => setName(e.target.value)}></input>
-        <button onClick={() => setEditingPeriodicity(true)}>Periodicity...</button>
         <button onClick={() => updateSchedule()}>Update</button>
+        <br />
+        <div>{(scheduleData ? getScheduleLongString(scheduleData) : '')}</div>
+        <button onClick={() => setEditingPeriodicity(true)}>Periodicity...</button>
         <br />
         <label htmlFor="schedule-from">Starts:</label> 
         <input type="date"

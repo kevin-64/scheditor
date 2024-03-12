@@ -1,48 +1,16 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext } from 'react';
 import { Tree, NodeRendererProps } from 'react-arborist';
 import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 import { Schedule, getScheduleShortString } from 'ktscore';
 import './ScheduleBrowser.css';
+import TreeContext from '../../contexts/tree/TreeContext';
 
 export default function ScheduleBrowser() {
-  const { lines } = useContext(ScheduleContext)!;
-  const treeRef = useRef(null);
-
-  const [data, setData] = useState<any>([]);
-
-  useEffect(() => {
-    setData([
-      ...lines.flatMap(ln => {
-        return [{
-          ...ln,
-          id: `L-${ln.lineid}`,
-          name: `Line ${ln.lineid}`,
-          children: [
-            ...[...ln.schedules.map(sch => {
-              return {
-                id: `S-${sch.scheduleid}`,
-                scheduleid: `${sch.scheduleid}`,
-                name: sch.name,
-                schedule: { ...sch}
-              }
-            }), {
-              id: `L-${ln.lineid}-ADD`,
-              name: `+ New Schedule`
-            }]
-          ],
-        }]
-      })
-    ])
-  }, [lines.length]);
-
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
+  const { treeData } = useContext(TreeContext)!;
 
   return (
     <Tree
-      ref={treeRef}
-      data={data}
+      data={treeData}
       openByDefault={false}
       width={400}
       height={1000}

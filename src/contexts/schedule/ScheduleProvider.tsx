@@ -40,7 +40,16 @@ export default function ScheduleProvider(props: PropsWithChildren) {
       lines: linesWithSchedules,
       currentSchedule: currSchedule,
       editingPeriodicity: editPeriodicity,
+      
+      updateSchedule: (sch: Schedule) => {
+        const newLines = [...linesWithSchedules];
+        const lnIndex = newLines.findIndex(ln => ln.lineid === sch.lineid);
+        const schIndex = newLines[lnIndex].schedules.findIndex(s => s.scheduleid === sch.scheduleid);
 
+        newLines[lnIndex].schedules[schIndex] = { ...sch };
+
+        setLinesWithSchedules(newLines);
+      },
       setCurrentSchedule: (sch: number) => {
         setCurrSchedule(sch);
       },
