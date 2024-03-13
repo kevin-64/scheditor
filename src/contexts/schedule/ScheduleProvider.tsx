@@ -7,7 +7,6 @@ import { Line, LineWithSchedules, Schedule } from "ktscore";
 export default function ScheduleProvider(props: PropsWithChildren) {
   const [linesWithSchedules, setLinesWithSchedules] = useState<LineWithSchedules[]>([]);
   const [currSchedule, setCurrSchedule] = useState<number | undefined>();
-  const [editPeriodicity, setEditPeriodicity] = useState(false);
 
   const loadSchedules = () => {
     axios.get('http://localhost:8080/lines').then((res) => {
@@ -27,19 +26,10 @@ export default function ScheduleProvider(props: PropsWithChildren) {
     loadSchedules();
   }, []);
 
-  useEffect(() => {
-    console.log(linesWithSchedules)
-  }, [linesWithSchedules])
-
-  useEffect(() => {
-    console.log(currSchedule)
-  }, [currSchedule])
-
   const provider = useMemo<ScheduleContextType>(() => {
     return {
       lines: linesWithSchedules,
       currentSchedule: currSchedule,
-      editingPeriodicity: editPeriodicity,
       
       updateSchedule: (sch: Schedule) => {
         const newLines = [...linesWithSchedules];
@@ -52,12 +42,9 @@ export default function ScheduleProvider(props: PropsWithChildren) {
       },
       setCurrentSchedule: (sch: number) => {
         setCurrSchedule(sch);
-      },
-      setEditingPeriodicity: (ep: boolean) => {
-        setEditPeriodicity(ep);
       }
     }
-  }, [linesWithSchedules, currSchedule, editPeriodicity]);
+  }, [linesWithSchedules, currSchedule]);
 
   return (
     <ScheduleContext.Provider value={provider}>
