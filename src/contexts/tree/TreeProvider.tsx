@@ -5,7 +5,6 @@ import TreeContext from "./TreeContext";
 
 export default function TreeProvider(props: PropsWithChildren) {
   const { lines } = useContext(ScheduleContext)!;
-
   const treeData = [...lines.flatMap(ln => {
     return [{
       ...ln,
@@ -21,7 +20,9 @@ export default function TreeProvider(props: PropsWithChildren) {
           }
         }), {
           id: `L-${ln.lineid}-ADD`,
-          name: `+ New Schedule`
+          name: `+ New Schedule`,
+          isNew: true,
+          lineid: ln.lineid
         }]
       ],
     }]

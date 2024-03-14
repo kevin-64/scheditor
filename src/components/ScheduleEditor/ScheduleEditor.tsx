@@ -2,19 +2,18 @@ import './ScheduleEditor.css';
 
 import React, { useContext } from "react";
 import { Schedule, getScheduleLongString } from 'ktscore';
-import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 import EditContext from '../../contexts/edit/EditContext';
+import ScheduleContext from '../../contexts/schedule/ScheduleContext';
 
 export default function ScheduleEditor() {
-  const { currentSchedule: scheduleId } = useContext(ScheduleContext)!;
+  const { newSchedule } = useContext(ScheduleContext)!;
   const { scheduleData, 
           newName, newFrom, newTo, setNewName, setNewFrom, setNewTo, 
-          commitChanges, toggleEditingPeriodicity } = useContext(EditContext)!;
+          commitChanges, deleteSchedule, toggleEditingPeriodicity } = useContext(EditContext)!;
 
   const updateSchedule = () => {
     const body = {
       ...scheduleData,
-      scheduleid: scheduleId,
       startvalidity: newFrom,
       endvalidity: newTo === '' ? null : newTo,
       name: newName,
@@ -23,21 +22,15 @@ export default function ScheduleEditor() {
     commitChanges(body as Schedule);
   }
 
-  // const close = () => {
-  //   setViewMode(ViewMode.NORMAL);
-  //   setPopup(undefined);
-  // }
-
   return (
-    scheduleData?.scheduleid ? (
+    scheduleData?.startvalidity ? (
     <div className={`kts-scheditor-schedule-editor`}>
-      {/* <button onClick={() => close()}>Close</button><br /> */}
         <label htmlFor="schedule-name">Name:</label> 
         <input type="text"
                 id="schedule-name"
                 value={newName} 
                 onChange={(e) => setNewName(e.target.value)}></input>
-        <button onClick={() => updateSchedule()}>Update</button>
+        <button onClick={() => updateSchedule()}>{scheduleData.scheduleid ? 'Update' : 'Create'}</button>
         <br />
         <div>{getScheduleLongString(scheduleData as Schedule)}</div>
         <button onClick={() => toggleEditingPeriodicity()}>Periodicity...</button>
@@ -58,6 +51,9 @@ export default function ScheduleEditor() {
                 id="schedule-to"
                 value={newTo} 
                 onChange={(e) => setNewTo(e.target.value)}></input>
+        <br />
+        <button onClick={() => newSchedule({...scheduleData, scheduleid: undefined})}>Clone</button>
+        <button onClick={() => deleteSchedule()}>Delete</button>
       </div>) : <></>
   )
 }

@@ -4,9 +4,10 @@ import axios from "axios";
 import EditContext from "./EditContext";
 import { Periodicity, Schedule } from "ktscore";
 import ScheduleContext from "../schedule/ScheduleContext";
+import moment from "moment";
 
 export default function EditProvider(props: PropsWithChildren) {
-  const { currentSchedule, updateSchedule } = useContext(ScheduleContext)!;
+  const { currentSchedule, updateSchedule, notifyDeletion } = useContext(ScheduleContext)!;
   const [schData, setSchData] = useState<Partial<Schedule>>({});
   const [editPeriodicity, setEditPeriodicity] = useState(false);
 
@@ -16,6 +17,21 @@ export default function EditProvider(props: PropsWithChildren) {
 
   useEffect(() => {
     if (!currentSchedule) return;
+
+    //partial schedule -> new or cloned
+    if (typeof currentSchedule !== "number") {
+      const tmpSch = {
+        ...currentSchedule,
+        name: currentSchedule.name || "NewSchedule",
+        startvalidity: currentSchedule.startvalidity || moment().format("YYYY-MM-DD"),
+        periodicity: currentSchedule.periodicity || {},
+        departuretime: currentSchedule.departuretime || { hh: Number(moment().format("hh")), mm: Number((moment().format("mm"))), ss: 0}
+      }
+      setSchData(tmpSch);
+      setTempName(tmpSch.name);
+      setTempFrom(tmpSch.startvalidity);
+      return;
+    }
 
     axios.get(`http://localhost:8080/schedules/${currentSchedule}`).then((res) => {
       const sch = {...res.data as Schedule};
@@ -30,7 +46,7 @@ export default function EditProvider(props: PropsWithChildren) {
   }, [currentSchedule]);
 
   useEffect(() => {
-    console.log(schData)
+    console.log('data change', schData)
   }, [schData])
 
   const provider = useMemo<EditContextType>(() => {
@@ -65,10 +81,24 @@ export default function EditProvider(props: PropsWithChildren) {
       },
 
       commitChanges: (sch: Schedule) => {
-        axios.put(`http://localhost:8080/schedules/${sch.scheduleid}`, {...schData, ...sch}).then(() => {
-          updateSchedule({...schData, ...sch} as Schedule);
-        });
+        if (sch.scheduleid) {
+          axios.put(`http://localhost:8080/schedules/${sch.scheduleid}`, {...schData, ...sch}).then(() => {
+            updateSchedule({...schData, ...sch} as Schedule);
+          });
+        } else {
+          axios.post(`http://localhost:8080/lines/${sch.lineid}/schedules`, {...schData, ...sch}).then(() => {
+            updateSchedule({...schData, ...sch} as Schedule);
+          });
+        }
       },
+
+      deleteSchedule: () => {
+        if (!schData.scheduleid || !schData.lineid) return;
+
+        axios.delete(`http://localhost:8080/schedules/${schData.scheduleid}`).then(() => {
+          notifyDeletion(schData.lineid!, schData.scheduleid!);
+        });
+      }
     }
   }, [currentSchedule, schData, editPeriodicity, tempName, tempFrom, tempTo]);
 

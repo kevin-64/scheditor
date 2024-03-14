@@ -6,7 +6,7 @@ import { Line, LineWithSchedules, Schedule } from "ktscore";
 
 export default function ScheduleProvider(props: PropsWithChildren) {
   const [linesWithSchedules, setLinesWithSchedules] = useState<LineWithSchedules[]>([]);
-  const [currSchedule, setCurrSchedule] = useState<number | undefined>();
+  const [currSchedule, setCurrSchedule] = useState<number | Partial<Schedule> | undefined>();
 
   const loadSchedules = () => {
     axios.get('http://localhost:8080/lines').then((res) => {
@@ -31,17 +31,39 @@ export default function ScheduleProvider(props: PropsWithChildren) {
       lines: linesWithSchedules,
       currentSchedule: currSchedule,
       
+      newSchedule: (sch: Partial<Schedule>) => {
+        setCurrSchedule({
+          ...sch
+        });
+      },
+
       updateSchedule: (sch: Schedule) => {
         const newLines = [...linesWithSchedules];
         const lnIndex = newLines.findIndex(ln => ln.lineid === sch.lineid);
         const schIndex = newLines[lnIndex].schedules.findIndex(s => s.scheduleid === sch.scheduleid);
 
-        newLines[lnIndex].schedules[schIndex] = { ...sch };
+        if (schIndex === -1) {
+          newLines[lnIndex].schedules.push({...sch});
+        } else {
+          newLines[lnIndex].schedules[schIndex] = { ...sch };
+        }
 
         setLinesWithSchedules(newLines);
       },
       setCurrentSchedule: (sch: number) => {
         setCurrSchedule(sch);
+      },
+
+      notifyDeletion: (lineid: number, scheduleid: number) => {
+        const newLines = [...linesWithSchedules];
+        const lnIndex = newLines.findIndex(ln => ln.lineid === lineid);
+        const schIndex = newLines[lnIndex].schedules.findIndex(s => s.scheduleid === scheduleid);
+
+        if (schIndex !== -1) {
+          newLines[lnIndex].schedules.splice(schIndex, 1);
+        }
+
+        setLinesWithSchedules(newLines);
       }
     }
   }, [linesWithSchedules, currSchedule]);

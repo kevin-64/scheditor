@@ -30,11 +30,13 @@ const Node = ({node, style, dragHandle}: NodeRendererProps<any>) => {
     scheduleName = `${getScheduleShortString(node.data.schedule as Schedule)} ${node.data.name || `Schedule ${node.data.scheduleid}`}`
   }
 
-  const { setCurrentSchedule } = useContext(ScheduleContext)!;
+  const { setCurrentSchedule, newSchedule } = useContext(ScheduleContext)!;
   return (
     <div ref={dragHandle} className="kts-scheditor-schedule-row" style={style} onClick={() => {
       if (node.data.scheduleid) {
         setCurrentSchedule(Number(node.data.scheduleid));
+      } else if (node.data.isNew) {
+        newSchedule({lineid: node.data.lineid})
       }
       node.toggle();
     }}>

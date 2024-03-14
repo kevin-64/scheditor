@@ -15,4 +15,5 @@ export default interface EditContextType {
   updatePeriodicity: (newP: Periodicity) => void
   toggleEditingPeriodicity: () => void
   commitChanges: (sch: Schedule) => void
+  deleteSchedule: () => void
 }
