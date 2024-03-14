@@ -52,7 +52,7 @@ export default function ScheduleEditor() {
                 value={newTo} 
                 onChange={(e) => setNewTo(e.target.value)}></input>
         <br />
-        <button onClick={() => newSchedule({...scheduleData, scheduleid: undefined})}>Clone</button>
+        {scheduleData.scheduleid && (<button onClick={() => newSchedule({...scheduleData, scheduleid: undefined})}>Clone</button>)}
         <button onClick={() => deleteSchedule()}>Delete</button>
       </div>) : <></>
   )

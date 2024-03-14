@@ -16,7 +16,10 @@ export default function EditProvider(props: PropsWithChildren) {
   const [tempTo, setTempTo] = useState('');
 
   useEffect(() => {
-    if (!currentSchedule) return;
+    if (!currentSchedule) {
+      setSchData({});
+      return;
+    };
 
     //partial schedule -> new or cloned
     if (typeof currentSchedule !== "number") {
@@ -86,8 +89,8 @@ export default function EditProvider(props: PropsWithChildren) {
             updateSchedule({...schData, ...sch} as Schedule);
           });
         } else {
-          axios.post(`http://localhost:8080/lines/${sch.lineid}/schedules`, {...schData, ...sch}).then(() => {
-            updateSchedule({...schData, ...sch} as Schedule);
+          axios.post(`http://localhost:8080/lines/${sch.lineid}/schedules`, {...schData, ...sch}).then((res) => {
+            updateSchedule({...schData, ...sch, scheduleid: res.data as number} as Schedule);
           });
         }
       },

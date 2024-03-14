@@ -64,6 +64,7 @@ export default function ScheduleProvider(props: PropsWithChildren) {
         }
 
         setLinesWithSchedules(newLines);
+        setCurrSchedule(undefined);
       }
     }
   }, [linesWithSchedules, currSchedule]);
