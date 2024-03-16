@@ -2,13 +2,13 @@ import React, { PropsWithChildren, useContext, useEffect, useMemo, useState } fr
 import EditContextType from "./EditContextType";
 import axios from "axios";
 import EditContext from "./EditContext";
-import { Periodicity, Schedule } from "ktscore";
+import { Periodicity, Schedule, ScheduleWithPoints } from "ktscore";
 import ScheduleContext from "../schedule/ScheduleContext";
 import moment from "moment";
 
 export default function EditProvider(props: PropsWithChildren) {
   const { currentSchedule, updateSchedule, notifyDeletion } = useContext(ScheduleContext)!;
-  const [schData, setSchData] = useState<Partial<Schedule>>({});
+  const [schData, setSchData] = useState<Partial<ScheduleWithPoints>>({});
   const [editPeriodicity, setEditPeriodicity] = useState(false);
 
   const [tempName, setTempName] = useState('');
@@ -81,6 +81,17 @@ export default function EditProvider(props: PropsWithChildren) {
 
       updatePeriodicity: (newPeriodicity: Periodicity) => {
         setSchData({...schData, periodicity: newPeriodicity});
+      },
+
+      addPoint: () => {
+        setSchData({...schData, points: [...(schData.points || []), {
+          arrivaltime: {hh:0, mm:0, ss:0},
+              departuretime: {hh:0, mm:0, ss:0},
+              linepointid: -1,
+              scheduleid: -1,
+              schedulepointid: -1,
+              variation: 0
+        }]});
       },
 
       commitChanges: (sch: Schedule) => {

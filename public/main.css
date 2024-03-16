@@ -1,6 +1,7 @@
 html, body {
   height: 100%;
   margin-left: 0;
+  overflow: hidden;
 }
 
 #root {
@@ -10,4 +11,19 @@ html, body {
 #kts-scheditor-main-container {
   display: flex;
   flex-direction: row;
+}
+
+#kts-scheditor-sch-container {
+  display: flex;
+  flex-direction: column;
+}
+
+#kts-scheditor-details-container {
+  display: flex;
+  flex-direction: row;
+  min-height: 150px;
+}
+
+#kts-scheditor-tt-container {
+  margin: 15px;
 }
