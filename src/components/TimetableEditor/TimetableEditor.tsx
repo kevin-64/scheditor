@@ -28,9 +28,10 @@ const timeFromString = (s: string) => {
 }
 
 export default function TimetableEditor() {
-  const { scheduleData, addPoint, editPoint, removePoint } = useContext(EditContext)!;
+  const { scheduleData, addPoint, editPoint, removePoint, shiftSchedule } = useContext(EditContext)!;
   const { colorScheme } = useMantineTheme();
-
+  
+  const [shiftAmount, setShiftAmount] = useState(0);
   const [linepoints, setLinepoints] = useState<LinePoint[]>([]);
 
   useEffect(() => {
@@ -119,6 +120,13 @@ export default function TimetableEditor() {
           onClick={() => {
             axios.put(`http://localhost:8080/schedules/${scheduleData.scheduleid}/points`, scheduleData.points!.map(lp => ({...lp, scheduleid: scheduleData.scheduleid})));
         }}>Save</button>
+        <input  type="number"
+                id="shift-amount"
+                value={shiftAmount} 
+                onChange={(e) => setShiftAmount(Number(e.target.value))}></input>
+        <label htmlFor="shift-amount">mins</label> 
+        <button
+          onClick={() => shiftSchedule(shiftAmount)}>Shift</button>
       </>
     ),
     renderRowActions: ({ row }) => (

@@ -2,7 +2,7 @@ import React, { PropsWithChildren, useContext, useEffect, useMemo, useState } fr
 import EditContextType from "./EditContextType";
 import axios from "axios";
 import EditContext from "./EditContext";
-import { Periodicity, Schedule, SchedulePoint, ScheduleWithPoints } from "ktscore";
+import { Periodicity, Schedule, SchedulePoint, ScheduleWithPoints, Time, addTimes, subtractTimes } from "ktscore";
 import ScheduleContext from "../schedule/ScheduleContext";
 import moment from "moment";
 
@@ -122,6 +122,17 @@ export default function EditProvider(props: PropsWithChildren) {
             updateSchedule({...schData, ...sch, scheduleid: res.data as number} as Schedule);
           });
         }
+      },
+
+      shiftSchedule: (mins: number) => {
+        const shiftFn = mins >= 0 ? ((t: Time) => addTimes(t, {hh: 0, mm: mins, ss: 0})) : ((t: Time) => subtractTimes(t, {hh: 0, mm: -mins, ss: 0}));
+        const newPoints = [...schData.points!];
+        newPoints.forEach(pt => {
+          pt.arrivaltime = shiftFn(pt.arrivaltime) as Time;
+          pt.departuretime = shiftFn(pt.departuretime) as Time;
+          pt.uid = Math.floor(Math.random() * 1000000000)
+        })
+        setSchData({...schData, points: [...newPoints]});
       },
 
       deleteSchedule: () => {
