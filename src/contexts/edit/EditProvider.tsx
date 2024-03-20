@@ -119,7 +119,15 @@ export default function EditProvider(props: PropsWithChildren) {
           });
         } else {
           axios.post(`http://localhost:8080/lines/${sch.lineid}/schedules`, {...schData, ...sch}).then((res) => {
-            updateSchedule({...schData, ...sch, scheduleid: res.data as number} as Schedule);
+            const newScheduleData = {...schData, ...sch, scheduleid: res.data as number} as ScheduleWithPoints
+            updateSchedule(newScheduleData);
+            setSchData(newScheduleData as any);
+
+            if (newScheduleData.points.length) {
+              axios.put(`http://localhost:8080/schedules/${newScheduleData.scheduleid}/points`, 
+                newScheduleData.points!.map(lp => ({...lp, scheduleid: newScheduleData.scheduleid}))
+              )
+            }
           });
         }
       },

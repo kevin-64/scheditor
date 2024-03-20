@@ -11,7 +11,7 @@ export default function ScheduleEditor() {
           newName, newFrom, newTo, setNewName, setNewFrom, setNewTo, 
           commitChanges, deleteSchedule, toggleEditingPeriodicity } = useContext(EditContext)!;
 
-  const updateSchedule = () => {
+  const applyChanges = () => {
     const body = {
       ...scheduleData,
       startvalidity: newFrom,
@@ -30,7 +30,7 @@ export default function ScheduleEditor() {
                 id="schedule-name"
                 value={newName} 
                 onChange={(e) => setNewName(e.target.value)}></input>
-        <button onClick={() => updateSchedule()}>{scheduleData.scheduleid ? 'Update' : 'Create'}</button>
+        <button onClick={() => applyChanges()}>{scheduleData.scheduleid ? 'Update' : 'Create'}</button>
         <br />
         <div>{getScheduleLongString(scheduleData as Schedule)}</div>
         <button onClick={() => toggleEditingPeriodicity()}>Periodicity...</button>
@@ -53,7 +53,7 @@ export default function ScheduleEditor() {
                 onChange={(e) => setNewTo(e.target.value)}></input>
         <br />
         {scheduleData.scheduleid && (<button onClick={() => newSchedule({...scheduleData, scheduleid: undefined})}>Clone</button>)}
-        <button onClick={() => deleteSchedule()}>Delete</button>
+        {scheduleData.scheduleid && (<button onClick={() => deleteSchedule()}>Delete</button>)}
       </div>) : <></>
   )
 }
