@@ -5,11 +5,12 @@ import {
   useMantineReactTable,
 } from 'mantine-react-table';
 import { Time } from 'ktscore';
-import { useMantineTheme } from '@mantine/core';
+import { ActionIcon, Tooltip, useMantineTheme } from '@mantine/core';
 import { SchedulePoint, LinePoint } from 'ktscore';
 import EditContext from '../../contexts/edit/EditContext';
 import './TimetableEditor.css';
 import axios from 'axios';
+import { IconTrash } from '@tabler/icons-react';
 
 const padNum = (n: number) => {
   return n.toString().padStart(2, "0");
@@ -27,16 +28,13 @@ const timeFromString = (s: string) => {
 }
 
 export default function TimetableEditor() {
-  const { scheduleData, addPoint } = useContext(EditContext)!;
+  const { scheduleData, addPoint, editPoint, removePoint } = useContext(EditContext)!;
   const { colorScheme } = useMantineTheme();
 
   const [linepoints, setLinepoints] = useState<LinePoint[]>([]);
-  const [newTimetable, setNewTimetable] = useState<SchedulePoint[]>([]);
 
   useEffect(() => {
     if (!scheduleData?.lineid) return;
-
-    setNewTimetable(scheduleData.points || []);
 
     axios.get(`http://localhost:8080/lines/${scheduleData.lineid}/points`).then(res => {
       setLinepoints(res.data);
@@ -56,10 +54,7 @@ export default function TimetableEditor() {
         mantineEditSelectProps: ({row}) => ({
           data: memoLinepointNames,
           onChange: (value: any) => {
-            const newTt = [...newTimetable];
-            const linepointid = linepoints.find(lp => lp.name === value)!.linepointid;
-            newTt[Number(row.id)] = {...newTimetable[Number(row.id)], linepointid};
-            setNewTimetable([...newTt]);
+            editPoint(row.index, { ...scheduleData.points![row.index], linepointid: linepoints.find(lp => lp.name === value)!.linepointid});
           }
         }),
       },
@@ -71,9 +66,7 @@ export default function TimetableEditor() {
           type: 'time',
           required: true,
           onBlur: event => {
-            const newTt = [...newTimetable];
-            newTt[Number(row.id)] = {...newTimetable[Number(row.id)], arrivaltime: timeFromString(event.target.value)};
-            setNewTimetable([...newTt]);
+            editPoint(row.index, { ...scheduleData.points![row.index], arrivaltime: timeFromString(event.target.value)});
           },
         }),
       },
@@ -85,29 +78,29 @@ export default function TimetableEditor() {
           type: 'time',
           required: true,
           onBlur: event => {
-            const newTt = [...newTimetable];
-            newTt[Number(row.id)] = {...newTimetable[Number(row.id)], departuretime: timeFromString(event.target.value)};
-            setNewTimetable([...newTt]);
+            editPoint(row.index, { ...scheduleData.points![row.index], departuretime: timeFromString(event.target.value)});
           },
         }),
       },
       //TODOK: variation
     ],
-    [memoLinepointNames, newTimetable],
+    [memoLinepointNames, linepoints, scheduleData],
   );
 
   const tableData = useMemo(() => {
-    console.log(scheduleData.points);
+    console.log('new tabledata', scheduleData.points);
     return scheduleData.points || [];
   }, [scheduleData]);
 
   const table = useMantineReactTable({
     columns,
+    getRowId: (row, index) => `${(row as any).uid}`,
     data: tableData,
     createDisplayMode: 'row',
     editDisplayMode: 'table',
     enableEditing: true,
     enableColumnActions: false,
+    enableRowActions: true,
     enableColumnFilters: false,
     enablePagination: false,
     enableSorting: false,
@@ -124,10 +117,23 @@ export default function TimetableEditor() {
         }}>+</button>
         <button
           onClick={() => {
-            axios.put(`http://localhost:8080/schedules/${scheduleData.scheduleid}/points`, newTimetable.map(lp => ({...lp, scheduleid: scheduleData.scheduleid})));
+            axios.put(`http://localhost:8080/schedules/${scheduleData.scheduleid}/points`, scheduleData.points!.map(lp => ({...lp, scheduleid: scheduleData.scheduleid})));
         }}>Save</button>
       </>
     ),
+    renderRowActions: ({ row }) => (
+      <Tooltip label="Delete">
+        <ActionIcon color="red" onClick={() => removePoint(row.index)}>
+          <IconTrash />
+        </ActionIcon>
+      </Tooltip>
+    ),
+    displayColumnDefOptions: {
+      'mrt-row-actions': {
+        header: '',
+        size: 10,
+      },
+    },
     mantineTableProps: {
       highlightOnHover: true,
       withColumnBorders: true,

@@ -1,4 +1,4 @@
-import { Periodicity, Schedule, ScheduleWithPoints } from "ktscore";
+import { Periodicity, Schedule, SchedulePoint, ScheduleWithPoints } from "ktscore";
 
 export default interface EditContextType {
   scheduleData: Partial<ScheduleWithPoints>
@@ -13,6 +13,8 @@ export default interface EditContextType {
   setNewTo: (n: string) => void,
   
   addPoint: () => void,
+  editPoint: (index: number, newPt: Partial<SchedulePoint>) => void,
+  removePoint: (index: number) => void,
   updatePeriodicity: (newP: Periodicity) => void
   toggleEditingPeriodicity: () => void
   commitChanges: (sch: Schedule) => void

@@ -2,13 +2,19 @@ import React, { PropsWithChildren, useContext, useEffect, useMemo, useState } fr
 import EditContextType from "./EditContextType";
 import axios from "axios";
 import EditContext from "./EditContext";
-import { Periodicity, Schedule, ScheduleWithPoints } from "ktscore";
+import { Periodicity, Schedule, SchedulePoint, ScheduleWithPoints } from "ktscore";
 import ScheduleContext from "../schedule/ScheduleContext";
 import moment from "moment";
 
+type SchedulePointWithUid = SchedulePoint & { uid: number }
+
+type ScheduleWithPointsAndUid = Omit<ScheduleWithPoints, 'points'> & {
+  points: SchedulePointWithUid[]
+}
+
 export default function EditProvider(props: PropsWithChildren) {
   const { currentSchedule, updateSchedule, notifyDeletion } = useContext(ScheduleContext)!;
-  const [schData, setSchData] = useState<Partial<ScheduleWithPoints>>({});
+  const [schData, setSchData] = useState<Partial<ScheduleWithPointsAndUid>>({});
   const [editPeriodicity, setEditPeriodicity] = useState(false);
 
   const [tempName, setTempName] = useState('');
@@ -37,8 +43,8 @@ export default function EditProvider(props: PropsWithChildren) {
     }
 
     axios.get(`http://localhost:8080/schedules/${currentSchedule}`).then((res) => {
-      const sch = {...res.data as Schedule};
-      setSchData(sch);
+      const sch = {...res.data as ScheduleWithPoints};
+      setSchData({...sch, points: [...sch.points.map(pt => ({...pt, uid: Math.floor(Math.random() * 1000000000)}))]});
 
       setTempName(sch.name || '');
       setTempFrom(sch.startvalidity!.substring(0, 10))
@@ -86,12 +92,24 @@ export default function EditProvider(props: PropsWithChildren) {
       addPoint: () => {
         setSchData({...schData, points: [...(schData.points || []), {
           arrivaltime: {hh:0, mm:0, ss:0},
-              departuretime: {hh:0, mm:0, ss:0},
-              linepointid: -1,
-              scheduleid: -1,
-              schedulepointid: -1,
-              variation: 0
+          departuretime: {hh:0, mm:0, ss:0},
+          linepointid: -1,
+          scheduleid: -1,
+          schedulepointid: -1,
+          variation: 0,
+          uid: Math.floor(Math.random() * 1000000000)
         }]});
+      },
+
+      editPoint: (index: number, newPt: Partial<SchedulePoint>) => {
+        const newPoints = [...schData.points!];
+        newPoints[index] = newPt as SchedulePointWithUid;
+        setSchData({...schData, points: [...newPoints]})
+      },
+
+      removePoint: (index: number) => {
+        console.log('removing', index, 'from', schData.points);
+        setSchData({...schData, points: [...(schData.points || []).filter((_, i) => i !== index)]});
       },
 
       commitChanges: (sch: Schedule) => {
