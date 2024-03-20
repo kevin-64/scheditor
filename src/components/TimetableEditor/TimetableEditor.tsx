@@ -89,7 +89,6 @@ export default function TimetableEditor() {
   );
 
   const tableData = useMemo(() => {
-    console.log('new tabledata', scheduleData.points);
     return scheduleData.points || [];
   }, [scheduleData]);
 
