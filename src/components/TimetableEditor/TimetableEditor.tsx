@@ -37,7 +37,7 @@ export default function TimetableEditor() {
   useEffect(() => {
     if (!scheduleData?.lineid) return;
 
-    axios.get(`http://localhost:8080/lines/${scheduleData.lineid}/points`).then(res => {
+    axios.get(`http://localhost:8080/lines/${scheduleData.lineid}/stops`).then(res => {
       setLinepoints(res.data);
     });
   }, [scheduleData]);

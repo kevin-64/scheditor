@@ -54,10 +54,6 @@ export default function EditProvider(props: PropsWithChildren) {
     });
   }, [currentSchedule]);
 
-  useEffect(() => {
-    console.log('data change', schData)
-  }, [schData])
-
   const provider = useMemo<EditContextType>(() => {
     return {
       scheduleData: schData,
@@ -108,7 +104,6 @@ export default function EditProvider(props: PropsWithChildren) {
       },
 
       removePoint: (index: number) => {
-        console.log('removing', index, 'from', schData.points);
         setSchData({...schData, points: [...(schData.points || []).filter((_, i) => i !== index)]});
       },
 
