@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "src/index.tsx",
   "author": "kevin-64 <kevinik@hotmail.it>",
-  "license": "MIT",
   "devDependencies": {
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
