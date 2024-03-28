@@ -4,7 +4,7 @@ import {
   type MRT_ColumnDef,
   useMantineReactTable,
 } from 'mantine-react-table';
-import { Time } from 'ktscore';
+import { timeFromString, timeToString } from 'ktscore';
 import { ActionIcon, Tooltip, useMantineTheme } from '@mantine/core';
 import { SchedulePoint, LinePoint } from 'ktscore';
 import EditContext from '../../contexts/edit/EditContext';
@@ -12,20 +12,7 @@ import './TimetableEditor.css';
 import axios from 'axios';
 import { IconTrash } from '@tabler/icons-react';
 
-const padNum = (n: number) => {
-  return n.toString().padStart(2, "0");
-}
 
-const timeFromString = (s: string) => {
-  const time: Partial<Time> = {};
-  const timeParts = s.split(':');
-
-  time.hh = Number(timeParts[0]);
-  time.mm = Number(timeParts[1]);
-  time.ss = Number(timeParts[2] || 0) as (0 | 30);
-
-  return time as Time;
-}
 
 export default function TimetableEditor() {
   const { scheduleData, addPoint, editPoint, removePoint, shiftSchedule } = useContext(EditContext)!;
@@ -60,7 +47,7 @@ export default function TimetableEditor() {
         }),
       },
       {
-        accessorFn: (sp => `${padNum(sp.arrivaltime.hh)}:${padNum(sp.arrivaltime.mm)}:${padNum(sp.arrivaltime.ss)}`),
+        accessorFn: (sp => timeToString(sp.arrivaltime)),
         id: 'arrivaltime',
         header: 'Arrival',
         mantineEditTextInputProps: ({ row }) => ({
@@ -72,7 +59,7 @@ export default function TimetableEditor() {
         }),
       },
       {
-        accessorFn: (sp => `${padNum(sp.departuretime.hh)}:${padNum(sp.departuretime.mm)}:${padNum(sp.departuretime.ss)}`),
+        accessorFn: (sp => timeToString(sp.departuretime)),
         id: 'departuretime',
         header: 'Departure',
         mantineEditTextInputProps: ({ row }) => ({
@@ -94,7 +81,7 @@ export default function TimetableEditor() {
 
   const table = useMantineReactTable({
     columns,
-    getRowId: (row, index) => `${(row as any).uid}`,
+    getRowId: (row) => `${(row as any).uid}`,
     data: tableData,
     createDisplayMode: 'row',
     editDisplayMode: 'table',
